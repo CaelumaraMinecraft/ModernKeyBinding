@@ -5,31 +5,31 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 
 public interface IKeyBinding {
-    InputUtil.Key getKey();
+    InputUtil.Key mkb$getKey();
 
-    IKeyConflictContext getKeyConflictContext();
+    IKeyConflictContext mkb$getKeyConflictContext();
 
-    KeyModifier getKeyModifierDefault();
+    KeyModifier mkb$getKeyModifierDefault();
 
-    KeyModifier getKeyModifier();
+    KeyModifier mkb$getKeyModifier();
 
-    void setKeyConflictContext(IKeyConflictContext keyConflictContext);
+    void mkb$setKeyConflictContext(IKeyConflictContext keyConflictContext);
 
-    void setKeyModifierAndCode(KeyModifier keyModifier, InputUtil.Key keyCode);
+    void mkb$setKeyModifierAndCode(KeyModifier keyModifier, InputUtil.Key keyCode);
 
-    void press();
+    void mkb$press();
 
-    default boolean isConflictContextAndModifierActive() {
-        return getKeyConflictContext().isActive() && getKeyModifier().isActive(getKeyConflictContext());
+    default boolean mkb$isConflictContextAndModifierActive() {
+        return mkb$getKeyConflictContext().isActive() && mkb$getKeyModifier().isActive(mkb$getKeyConflictContext());
     }
 
     /**
      * Returns true when one of the bindings' key codes conflicts with the other's modifier.
      */
-    default boolean hasKeyCodeModifierConflict(KeyBinding other) {
+    default boolean mkb$hasKeyCodeModifierConflict(KeyBinding other) {
         final IKeyBinding extended = (IKeyBinding) other;
-        if (getKeyConflictContext().conflicts(extended.getKeyConflictContext()) || extended.getKeyConflictContext().conflicts(getKeyConflictContext())) {
-            return getKeyModifier().matches(extended.getKey()) || extended.getKeyModifier().matches(getKey());
+        if (mkb$getKeyConflictContext().conflicts(extended.mkb$getKeyConflictContext()) || extended.mkb$getKeyConflictContext().conflicts(mkb$getKeyConflictContext())) {
+            return mkb$getKeyModifier().matches(extended.mkb$getKey()) || extended.mkb$getKeyModifier().matches(mkb$getKey());
         }
         return false;
     }
@@ -37,15 +37,15 @@ public interface IKeyBinding {
     /**
      * Checks that the key conflict context and modifier are active, and that the keyCode matches this binding.
      */
-    default boolean isActiveAndMatches(InputUtil.Key keyCode) {
-        return keyCode != InputUtil.UNKNOWN_KEY && keyCode.equals(getKey()) && getKeyConflictContext().isActive() && getKeyModifier().isActive(getKeyConflictContext());
+    default boolean mkb$isActiveAndMatches(InputUtil.Key keyCode) {
+        return keyCode != InputUtil.UNKNOWN_KEY && keyCode.equals(mkb$getKey()) && mkb$getKeyConflictContext().isActive() && mkb$getKeyModifier().isActive(mkb$getKeyConflictContext());
     }
 
-    default void setToDefault() {
-        setKeyModifierAndCode(getKeyModifierDefault(), getKeyBinding().getDefaultKey());
+    default void mkb$setToDefault() {
+        mkb$setKeyModifierAndCode(mkb$getKeyModifierDefault(), mkb$getKeyBinding().getDefaultKey());
     }
 
-    default KeyBinding getKeyBinding() {
+    default KeyBinding mkb$getKeyBinding() {
         return (KeyBinding) this;
     }
 }

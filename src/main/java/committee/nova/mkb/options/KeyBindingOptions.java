@@ -40,9 +40,9 @@ public class KeyBindingOptions {
     public static void write(KeyBinding[] bindings) {
         if (!isDirReady() || !isFileReady()) return;
         try (final BufferedWriter w = new BufferedWriter(new FileWriter(optPath.toFile()))) {
-            for (final KeyBinding k : bindings) {
-                final IKeyBinding extended = (IKeyBinding) k;
-                w.write("key_" + k.getTranslationKey() + ":" + k.getBoundKeyTranslationKey() + ":" + extended.getKeyModifier().name());
+            for (final KeyBinding binding : bindings) {
+                final IKeyBinding extended = (IKeyBinding) binding;
+                w.write("key_" + binding.getId() + ":" + binding.getBoundKeyTranslationKey() + ":" + extended.mkb$getKeyModifier().name());
                 w.newLine();
             }
         } catch (IOException e) {
@@ -56,11 +56,11 @@ public class KeyBindingOptions {
             String l;
             while ((l = r.readLine()) != null) {
                 final String[] s = l.split(":");
-                for (final KeyBinding k : bindings) {
-                    if (Objects.equals(s[0], "key_" + k.getTranslationKey())) {
+                for (final KeyBinding binding : bindings) {
+                    if (Objects.equals(s[0], "key_" + binding.getId())) {
                         final KeyModifier m = s.length > 2 ? KeyModifier.valueFromString(s[2]) : KeyModifier.NONE;
-                        final IKeyBinding e = (IKeyBinding) k;
-                        e.setKeyModifierAndCode(m, InputUtil.fromTranslationKey(s[1]));
+                        final IKeyBinding e = (IKeyBinding) binding;
+                        e.mkb$setKeyModifierAndCode(m, InputUtil.fromTranslationKey(s[1]));
                     }
                 }
             }

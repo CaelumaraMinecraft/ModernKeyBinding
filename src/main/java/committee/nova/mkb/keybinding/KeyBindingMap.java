@@ -39,7 +39,7 @@ public class KeyBindingMap {
     private KeyBinding getBinding(InputUtil.Key keyCode, KeyModifier keyModifier) {
         Collection<KeyBinding> bindings = map.get(keyModifier).get(keyCode);
         if (bindings == null) return null;
-        for (KeyBinding binding : bindings) if (((IKeyBinding) binding).isActiveAndMatches(keyCode)) return binding;
+        for (KeyBinding binding : bindings) if (((IKeyBinding) binding).mkb$isActiveAndMatches(keyCode)) return binding;
         return null;
     }
 
@@ -48,7 +48,7 @@ public class KeyBindingMap {
         final Set<KeyBinding> toReturn = new HashSet<>();
         if (bindings == null) return toReturn;
         for (KeyBinding binding : bindings)
-            if (((IKeyBinding) binding).isActiveAndMatches(keyCode)) toReturn.add(binding);
+            if (((IKeyBinding) binding).mkb$isActiveAndMatches(keyCode)) toReturn.add(binding);
         return toReturn;
     }
 
@@ -64,7 +64,7 @@ public class KeyBindingMap {
     }
 
     public void addKey(InputUtil.Key keyCode, KeyBinding keyBinding) {
-        KeyModifier keyModifier = ((IKeyBinding) keyBinding).getKeyModifier();
+        KeyModifier keyModifier = ((IKeyBinding) keyBinding).mkb$getKeyModifier();
         Map<InputUtil.Key, Collection<KeyBinding>> bindingsMap = map.get(keyModifier);
         Collection<KeyBinding> bindingsForKey = bindingsMap.computeIfAbsent(keyCode, k -> new ArrayList<>());
         bindingsForKey.add(keyBinding);
@@ -72,8 +72,8 @@ public class KeyBindingMap {
 
     public void removeKey(KeyBinding keyBinding) {
         final IKeyBinding extended = (IKeyBinding) keyBinding;
-        KeyModifier keyModifier = extended.getKeyModifier();
-        InputUtil.Key keyCode = extended.getKey();
+        KeyModifier keyModifier = extended.mkb$getKeyModifier();
+        InputUtil.Key keyCode = extended.mkb$getKey();
         Map<InputUtil.Key, Collection<KeyBinding>> bindingsMap = map.get(keyModifier);
         Collection<KeyBinding> bindingsForKey = bindingsMap.get(keyCode);
         if (bindingsForKey != null) {

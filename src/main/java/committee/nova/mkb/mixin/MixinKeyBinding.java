@@ -10,9 +10,11 @@ import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.option.StickyKeyBinding;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.text.Text;
+import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -23,7 +25,7 @@ import java.util.Map;
 @Mixin(KeyBinding.class)
 public abstract class MixinKeyBinding implements IKeyBinding {
     @Shadow
-    private InputUtil.Key boundKey;
+    protected InputUtil.Key boundKey;
 
     @Shadow
     private int timesPressed;
@@ -35,39 +37,43 @@ public abstract class MixinKeyBinding implements IKeyBinding {
     @Shadow
     @Final
     private static Map<String, KeyBinding> KEYS_BY_ID;
-    private static final KeyBindingMap MAP = new KeyBindingMap();
 
+    @Unique
+    private static final KeyBindingMap MAP = new KeyBindingMap();
+    @Unique
     private KeyModifier keyModifierDefault;
-    private KeyModifier keyModifier;
+    @Unique
+    private @Nullable KeyModifier keyModifier;
+    @Unique
     private IKeyConflictContext keyConflictContext;
 
     @Override
-    public InputUtil.Key getKey() {
+    public InputUtil.Key mkb$getKey() {
         return boundKey;
     }
 
     @Override
-    public IKeyConflictContext getKeyConflictContext() {
+    public IKeyConflictContext mkb$getKeyConflictContext() {
         return keyConflictContext == null ? KeyConflictContext.UNIVERSAL : keyConflictContext;
     }
 
     @Override
-    public KeyModifier getKeyModifierDefault() {
+    public KeyModifier mkb$getKeyModifierDefault() {
         return keyModifierDefault == null ? KeyModifier.NONE : keyModifierDefault;
     }
 
     @Override
-    public KeyModifier getKeyModifier() {
+    public KeyModifier mkb$getKeyModifier() {
         return keyModifier == null ? KeyModifier.NONE : keyModifier;
     }
 
     @Override
-    public void setKeyConflictContext(IKeyConflictContext keyConflictContext) {
+    public void mkb$setKeyConflictContext(IKeyConflictContext keyConflictContext) {
         this.keyConflictContext = keyConflictContext;
     }
 
     @Override
-    public void setKeyModifierAndCode(KeyModifier keyModifier, InputUtil.Key keyCode) {
+    public void mkb$setKeyModifierAndCode(KeyModifier keyModifier, InputUtil.Key keyCode) {
         this.boundKey = keyCode;
         if (keyModifier.matches(keyCode))
             keyModifier = KeyModifier.NONE;
@@ -77,12 +83,12 @@ public abstract class MixinKeyBinding implements IKeyBinding {
     }
 
     @Override
-    public void press() {
+    public void mkb$press() {
         ++timesPressed;
     }
 
-    @Inject(method = "<init>(Ljava/lang/String;Lnet/minecraft/client/util/InputUtil$Type;ILjava/lang/String;)V", at = @At("RETURN"))
-    public void inject$init(String translationKey, InputUtil.Type type, int code, String category, CallbackInfo ci) {
+    @Inject(method = "<init>(Ljava/lang/String;Lnet/minecraft/client/util/InputUtil$Type;ILnet/minecraft/client/option/KeyBinding$Category;I)V", at = @At("RETURN"))
+    public void inject$init(String id, InputUtil.Type type, int code, KeyBinding.Category category, int i, CallbackInfo ci) {
         MAP.addKey(this.boundKey, (KeyBinding) (Object) this);
     }
 
@@ -90,12 +96,12 @@ public abstract class MixinKeyBinding implements IKeyBinding {
     private static void inject$onKeyPressed(InputUtil.Key key, CallbackInfo ci) {
         ci.cancel();
         if (ModernKeyBinding.nonConflictKeys()) {
-            MAP.lookupActives(key).forEach(k -> ((IKeyBinding) k).press());
+            MAP.lookupActives(key).forEach(k -> ((IKeyBinding) k).mkb$press());
             return;
         }
         KeyBinding keyBinding = MAP.lookupActive(key);
         if (keyBinding == null) return;
-        ((IKeyBinding) keyBinding).press();
+        ((IKeyBinding) keyBinding).mkb$press();
     }
 
     @Inject(method = "setKeyPressed", at = @At("HEAD"), cancellable = true)
@@ -114,45 +120,46 @@ public abstract class MixinKeyBinding implements IKeyBinding {
     private static void updateKeysByCode(CallbackInfo ci) {
         ci.cancel();
         MAP.clearMap();
-        for (KeyBinding keybinding : KEYS_BY_ID.values()) MAP.addKey(((IKeyBinding) keybinding).getKey(), keybinding);
+        for (KeyBinding keybinding : KEYS_BY_ID.values())
+            MAP.addKey(((IKeyBinding) keybinding).mkb$getKey(), keybinding);
     }
 
     @Inject(method = "isPressed", at = @At("RETURN"), cancellable = true)
     private void inject$isPressed(CallbackInfoReturnable<Boolean> cir) {
         if (((KeyBinding) (Object) this) instanceof StickyKeyBinding) {
             final StickyKeyBinding sticky = (StickyKeyBinding) (Object) this;
-            cir.setReturnValue(pressed && (isConflictContextAndModifierActive() || ((AccessorStickyKeyBinding) sticky).getToggleGetter().getAsBoolean()));
+            cir.setReturnValue(pressed && (mkb$isConflictContextAndModifierActive() || ((AccessorStickyKeyBinding) sticky).getToggleGetter().getAsBoolean()));
             return;
         }
-        cir.setReturnValue(pressed && isConflictContextAndModifierActive());
+        cir.setReturnValue(pressed && mkb$isConflictContextAndModifierActive());
     }
 
     @Inject(method = "isDefault", at = @At("RETURN"), cancellable = true)
     private void inject$isDefault(CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(boundKey.equals(defaultKey) && getKeyModifier() == getKeyModifierDefault());
+        cir.setReturnValue(boundKey.equals(defaultKey) && mkb$getKeyModifier() == mkb$getKeyModifierDefault());
     }
 
     @Inject(method = "equals", at = @At("HEAD"), cancellable = true)
     private void inject$equals(KeyBinding other, CallbackInfoReturnable<Boolean> cir) {
         final IKeyBinding extended = (IKeyBinding) other;
-        if (!getKeyConflictContext().conflicts(extended.getKeyConflictContext()) && !extended.getKeyConflictContext().conflicts(getKeyConflictContext()))
+        if (!mkb$getKeyConflictContext().conflicts(extended.mkb$getKeyConflictContext()) && !extended.mkb$getKeyConflictContext().conflicts(mkb$getKeyConflictContext()))
             return;
-        KeyModifier keyModifier = getKeyModifier();
-        KeyModifier otherKeyModifier = extended.getKeyModifier();
-        if (keyModifier.matches(extended.getKey()) || otherKeyModifier.matches(getKey())) {
+        KeyModifier keyModifier = mkb$getKeyModifier();
+        KeyModifier otherKeyModifier = extended.mkb$getKeyModifier();
+        if (keyModifier.matches(extended.mkb$getKey()) || otherKeyModifier.matches(mkb$getKey())) {
             cir.setReturnValue(true);
-        } else if (getKey().equals(extended.getKey())) {
+        } else if (mkb$getKey().equals(extended.mkb$getKey())) {
             // IN_GAME key contexts have a conflict when at least one modifier is NONE.
             // For example: If you hold shift to crouch, you can still press E to open your inventory. This means that a Shift+E hotkey is in conflict with E.
             // GUI and other key contexts do not have this limitation.
             cir.setReturnValue(keyModifier == otherKeyModifier ||
-                    (getKeyConflictContext().conflicts(KeyConflictContext.IN_GAME) &&
+                    (mkb$getKeyConflictContext().conflicts(KeyConflictContext.IN_GAME) &&
                             (keyModifier == KeyModifier.NONE || otherKeyModifier == KeyModifier.NONE)));
         }
     }
 
     @Inject(method = "getBoundKeyLocalizedText", at = @At("RETURN"), cancellable = true)
     private void inject$getBoundKeyLocalizedText(CallbackInfoReturnable<Text> cir) {
-        cir.setReturnValue(getKeyModifier().getCombinedName(boundKey, () -> this.boundKey.getLocalizedText()));
+        cir.setReturnValue(mkb$getKeyModifier().getCombinedName(boundKey, () -> this.boundKey.getLocalizedText()));
     }
 }

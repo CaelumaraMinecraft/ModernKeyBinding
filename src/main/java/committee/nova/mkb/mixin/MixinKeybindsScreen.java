@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screen.option.ControlsListWidget;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.gui.screen.option.KeybindsScreen;
 import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.input.KeyInput;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -38,25 +39,25 @@ public abstract class MixinKeybindsScreen extends GameOptionsScreen {
     }
 
     @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
-    public void inject$keyPressed(int keyCode, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir) {
+    public void inject$keyPressed(KeyInput input, CallbackInfoReturnable<Boolean> cir) {
         if (selectedKeyBinding != null) {
             final IKeyBinding extended = (IKeyBinding) selectedKeyBinding;
-            if (keyCode == 256) {
-                extended.setKeyModifierAndCode(KeyModifier.getActiveModifier(), InputUtil.UNKNOWN_KEY);
+            if (input.isEscape() /*input.getKeycode() == 256*/) {
+                extended.mkb$setKeyModifierAndCode(KeyModifier.getActiveModifier(), InputUtil.UNKNOWN_KEY);
                 selectedKeyBinding.setBoundKey(InputUtil.UNKNOWN_KEY);
             } else {
-                InputUtil.Key key = InputUtil.fromKeyCode(keyCode, scanCode);
-                extended.setKeyModifierAndCode(KeyModifier.getActiveModifier(), key);
+                InputUtil.Key key = InputUtil.fromKeyCode(input);
+                extended.mkb$setKeyModifierAndCode(KeyModifier.getActiveModifier(), key);
                 selectedKeyBinding.setBoundKey(key);
             }
-            if (!KeyModifier.isKeyCodeModifier(((IKeyBinding) selectedKeyBinding).getKey())) selectedKeyBinding = null;
+            if (!KeyModifier.isKeyCodeModifier(((IKeyBinding) selectedKeyBinding).mkb$getKey())) selectedKeyBinding = null;
             this.lastKeyCodeUpdateTime = Util.getMeasuringTimeMs();
             this.gameOptions.write(); // Save the changes
             this.controlsList.update();
             cir.setReturnValue(true);
             return;
         }
-        cir.setReturnValue(super.keyPressed(keyCode, scanCode, modifiers));
+        cir.setReturnValue(super.keyPressed(input));
     }
 
     @Redirect(method = "initFooter", at = @At(
@@ -67,7 +68,7 @@ public abstract class MixinKeybindsScreen extends GameOptionsScreen {
     private ButtonWidget redirect$initFooter(ButtonWidget.Builder instance) {
         return ButtonWidget.builder(Text.translatable("controls.resetAll"), button -> {
             for (KeyBinding keyBinding : this.gameOptions.allKeys) {
-                ((IKeyBinding) keyBinding).setToDefault();
+                ((IKeyBinding) keyBinding).mkb$setToDefault();
             }
 
             this.controlsList.update();

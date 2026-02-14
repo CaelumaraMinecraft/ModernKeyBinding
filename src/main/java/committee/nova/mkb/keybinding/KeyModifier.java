@@ -2,8 +2,8 @@ package committee.nova.mkb.keybinding;
 
 import committee.nova.mkb.api.IKeyConflictContext;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.util.MacWindowUtil;
 import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
@@ -15,7 +15,7 @@ public enum KeyModifier {
         @Override
         public boolean matches(InputUtil.Key key) {
             int keyCode = key.getCode();
-            if (MinecraftClient.IS_SYSTEM_MAC) {
+            if (MacWindowUtil.IS_MAC) {
                 return keyCode == GLFW.GLFW_KEY_LEFT_ALT || keyCode == GLFW.GLFW_KEY_RIGHT_ALT;
             } else {
                 return keyCode == GLFW.GLFW_KEY_LEFT_CONTROL || keyCode == GLFW.GLFW_KEY_RIGHT_CONTROL;
@@ -24,12 +24,12 @@ public enum KeyModifier {
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext) {
-            return Screen.hasControlDown();
+            return MinecraftClient.getInstance().isCtrlPressed();
         }
 
         @Override
         public Text getCombinedName(InputUtil.Key key, Supplier<Text> defaultLogic) {
-            String fm = MinecraftClient.IS_SYSTEM_MAC ? "CMD + " : "CTRL + ";
+            String fm = MacWindowUtil.IS_MAC ? "CMD + " : "CTRL + ";
             return Text.literal(fm + defaultLogic.get().getString());
         }
     },
@@ -41,7 +41,7 @@ public enum KeyModifier {
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext) {
-            return Screen.hasShiftDown();
+            return MinecraftClient.getInstance().isShiftPressed();
         }
 
         @Override
@@ -57,7 +57,7 @@ public enum KeyModifier {
 
         @Override
         public boolean isActive(@Nullable IKeyConflictContext conflictContext) {
-            return Screen.hasAltDown();
+            return MinecraftClient.getInstance().isAltPressed();
         }
 
         @Override

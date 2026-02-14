@@ -30,7 +30,7 @@ public abstract class MixinKeyBindingEntry {
     @Inject(method = "<init>(Lnet/minecraft/client/gui/screen/option/ControlsListWidget;Lnet/minecraft/client/option/KeyBinding;Lnet/minecraft/text/Text;)V", at = @At("RETURN"))
     private void inject$init(ControlsListWidget controlsListWidget, KeyBinding binding, Text text, CallbackInfo ci) {
         resetButton = ButtonWidget.builder(Text.translatable("controls.reset"), button -> {
-                    ((IKeyBinding) binding).setToDefault();
+                    ((IKeyBinding) binding).mkb$setToDefault();
                     binding.setBoundKey(binding.getDefaultKey());
                     ((AccessorScreen) ((AccessorControlsListWidget) outerThis).getParent()).getClient().options.write();
                     outerThis.update();

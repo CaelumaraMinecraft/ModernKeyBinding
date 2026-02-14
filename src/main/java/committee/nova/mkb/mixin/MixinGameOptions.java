@@ -84,7 +84,7 @@ public abstract class MixinGameOptions {
         final KeyBinding[] keyBindings = {forwardKey, backKey, leftKey, rightKey, jumpKey, sneakKey,
                 sprintKey, attackKey, chatKey, playerListKey, commandKey, togglePerspectiveKey, smoothCameraKey};
         for (final KeyBinding binding : keyBindings)
-            ((IKeyBinding) binding).setKeyConflictContext(KeyConflictContext.IN_GAME);
+            ((IKeyBinding) binding).mkb$setKeyConflictContext(KeyConflictContext.IN_GAME);
     }
 
     //@Redirect(method = "accept", at = @At(value = "INVOKE",

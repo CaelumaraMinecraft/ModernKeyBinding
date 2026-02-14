@@ -7,10 +7,10 @@ import committee.nova.mkb.keybinding.KeyModifier;
 public class ControllingCompat {
     public static void init() {
         ControllingEvents.HAS_CONFLICTING_MODIFIERS_EVENT
-                .register(event -> ((IKeyBinding) event.thisMapping()).hasKeyCodeModifierConflict(event.otherMapping()));
+                .register(event -> ((IKeyBinding) event.thisMapping()).mkb$hasKeyCodeModifierConflict(event.otherMapping()));
 
         ControllingEvents.SET_KEY_EVENT.register(event -> {
-            ((IKeyBinding) event.mapping()).setKeyModifierAndCode(KeyModifier.getActiveModifier(), event.key());
+            ((IKeyBinding) event.mapping()).mkb$setKeyModifierAndCode(KeyModifier.getActiveModifier(), event.key());
             return false;
         });
 
@@ -18,7 +18,7 @@ public class ControllingCompat {
                 .register(event -> KeyModifier.isKeyCodeModifier(event.key()));
 
         ControllingEvents.SET_TO_DEFAULT_EVENT.register(event -> {
-            ((IKeyBinding) event.mapping()).setToDefault();
+            ((IKeyBinding) event.mapping()).mkb$setToDefault();
             return false;
         });
     }
