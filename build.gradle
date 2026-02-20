@@ -20,6 +20,10 @@ repositories {
     }
 }
 
+base {
+    archivesName = "${project.archives_base_name}-Fabric-${project.minecraft_version}"
+}
+
 loom {
 }
 
@@ -43,8 +47,6 @@ processResources {
 }
 
 def targetJavaVersion = 21
-def archivesBaseName = "${project.archives_base_name}-Fabric-${project.minecraft_version}"
-
 
 tasks.withType(JavaCompile).configureEach {
     // ensure that the encoding is set to UTF-8, no matter what the system default is
@@ -70,7 +72,7 @@ java {
 
 jar {
     from("LICENSE") {
-        rename { "${it}_${archivesBaseName}" }
+        rename { "${it}_${base.archivesName}" }
     }
 }
 
